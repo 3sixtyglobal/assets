@@ -1,0 +1,6 @@
+.vercel
+node_modules
+.updatable-packages
+.DS_Store
+
+.vercel
