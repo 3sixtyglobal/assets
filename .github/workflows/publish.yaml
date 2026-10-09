@@ -1,4 +1,4 @@
-name: Publish UI to Vercel
+name: Publish to Vercel
 
 on:
   workflow_dispatch:
@@ -17,6 +17,13 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      # Only allow publishing when the workflow is run from the main branch
+      - name: Check branch
+        if: github.ref != 'refs/heads/main'
+        run: |
+          echo "Error: Publishing is only allowed from the main branch, not ${{ github.ref_name }}"
+          exit 1
+
       # Clone the repository to the runner
       - name: Checkout
         uses: actions/checkout@v4
