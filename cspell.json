@@ -1,5 +1,5 @@
 {
 	"language": "en-GB",
-	"ignorePaths": ["commitlint.config.mjs", "vercel.json"],
+	"ignorePaths": ["commitlint.config.mjs", "vercel.json", "pnpm-lock.yaml"],
 	"words": ["Stiftung"]
 }

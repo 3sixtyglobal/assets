@@ -1,9 +1,6 @@
-# TWIN Assets
+# 3Sixty Assets
 
-This repository contains the content for assets published at the following locations:
-
-- `next` builds - [https://assets-dev.twindev.org/](https://assets-dev.twindev.org/)
-- `prod` builds - [https://assets.twindev.org/](https://assets.twindev.org/)
+This repository contains the content for assets published at [https://assets.3sixty.global/](https://assets.3sixty.global/).
 
 ## Naming guidelines
 
@@ -14,12 +11,6 @@ Please try and keep the content well organised.
 
 ## Content
 
-The content you want to publish should be added to the [web/content](web/content) folder, this will then be available as follows:
+The content you want to publish should be added to the [web/content](web/content) folder, this will then be available at `https://assets.3sixty.global/content/*`
 
-- `next` - `https://assets-dev.twindev.org/content/*`
-- `prod` - `https://assets.twindev.org/content/*`
-
-e.g.
-
-- `next` - [https://assets-dev.twindev.org/content/images/logo.svg](https://assets-dev.twindev.org/images/logo.svg)
-- `prod` - [https://assets.twindev.org/content/images/logo.svg](https://assets.twindev.org/images/logo.svg)
+e.g. [https://assets.3sixty.global/content/images/logo.svg](https://assets.3sixty.global/content/images/logo.svg)

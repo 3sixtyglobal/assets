@@ -2,15 +2,6 @@ name: Publish UI to Vercel
 
 on:
   workflow_dispatch:
-    inputs:
-      # Which branch are we publishing the deployments from?
-      releaseType:
-        description: 'Branch to prepare the deployments on'
-        required: true
-        type: choice
-        options:
-          - '🚧 prerelease (next branch)' # For prereleases (e.g., 0.1.0-next.1)
-          - '🚀 production (main branch)' # For production releases (e.g., 1.0.0, 1.1.0, 1.1.1)
 
 permissions:
   contents: read
@@ -18,7 +9,7 @@ permissions:
   deployments: write
 
 env:
-  VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID_ASSETS }}
+  VERCEL_PROJECT_ID: ${{ secrets.VERCEL_ASSETS_PROJECT_ID }}
   VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
 
 jobs:
@@ -26,46 +17,30 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # Set branch variable based on release type
-      - name: Set target branch
-        id: set-branch
-        run: |
-          INPUT="${{ github.event.inputs.releaseType }}"
-          if [[ "$INPUT" == *"next"* ]]; then
-            BRANCH="next"
-          elif [[ "$INPUT" == *"main"* ]]; then
-            BRANCH="main"
-          else
-            echo "Error: Unrecognized release type: $INPUT"
-            exit 1
-          fi
-          echo "branch=$BRANCH" >> $GITHUB_OUTPUT
-          echo "Using branch: $BRANCH"
-
       # Clone the repository to the runner
       - name: Checkout
         uses: actions/checkout@v4
         with:
           token: ${{ secrets.GITHUB_TOKEN }} # Using GITHUB_TOKEN makes actions run as github-actions bot
-          ref: ${{ steps.set-branch.outputs.branch }} # Checkout the calculated branch
+          ref: main
           fetch-depth: 0 # Needed for merge operations
 
       - name: Setup Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
-          node-version: 20
+          node-version: 24
 
       - name: Install Vercel CLI
         run: npm install -g vercel
 
-      # Deploy To vercel and output the deployment URL as a GitHub output from the step
+      # Deploy the web folder to vercel and output the deployment URL as a GitHub output from the step
       - name: Deploy to Vercel
         id: deploy
         run: |
-          DEPLOYMENT_URL=$(vercel deploy \
+          DEPLOYMENT_URL=$(vercel deploy web \
           --token=${{ secrets.VERCEL_TOKEN }} \
           --scope=${{ secrets.VERCEL_SCOPE }} \
-          --target=${{ steps.set-branch.outputs.branch == 'main' && 'production' || 'dev' }} \
+          --target=production \
           --force)
           echo "deployment-url=$DEPLOYMENT_URL" >> $GITHUB_OUTPUT
 
@@ -74,6 +49,6 @@ jobs:
         run: |
           vercel alias set \
           ${{ steps.deploy.outputs.deployment-url }} \
-          ${{  steps.set-branch.outputs.branch == 'main' && secrets.DOMAIN_ASSETS_PROD || secrets.DOMAIN_ASSETS_DEV }} \
+          ${{ secrets.DOMAIN_ASSETS_PROD }} \
           --token=${{ secrets.VERCEL_TOKEN }} \
           --scope=${{ secrets.VERCEL_SCOPE }}

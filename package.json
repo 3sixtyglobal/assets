@@ -1,33 +1,33 @@
 {
-	"name": "@twin.org/assets",
+	"name": "@3sixty/assets",
 	"version": "1.0.0",
 	"description": "This repository contains the content for assets",
 	"repository": {
 		"type": "git",
-		"url": "git+https://github.com/iotaledger/twin-assets.git"
+		"url": "git+https://github.com/3sixtyglobal/assets.git"
 	},
 	"author": "martyn.janes@iota.org",
 	"license": "Apache-2.0",
+	"packageManager": "pnpm@12.4.1",
 	"scripts": {
 		"format": "prettier --write .",
 		"lint:format": "prettier --config .prettierrc --check .",
-		"lint:markdown": "markdownlint **/*.md --ignore **/node_modules/** --ignore **/docs/reference/**",
+		"lint:markdown": "markdownlint-cli2",
 		"lint:spell": "cspell ** --no-progress",
-		"lint": "npm run lint:format && npm run lint:markdown && npm run lint:spell",
+		"lint": "concurrently -g -n format,markdown,spell \"pnpm run lint:format\" \"pnpm run lint:markdown\" \"pnpm run lint:spell\"",
 		"dist": "echo There is no dist in this package",
 		"commitlint": "commitlint --edit",
-		"prepare": "husky"
+		"prepare": "node ./scripts/install-hooks.mjs"
 	},
 	"engines": {
-		"node": ">=20.0.0"
+		"node": ">=24.0.0"
 	},
 	"devDependencies": {
-		"@commitlint/cli": "19.8.1",
-		"@commitlint/config-conventional": "19.8.1",
+		"@commitlint/cli": "21.2.3",
+		"@commitlint/config-conventional": "21.2.3",
+		"concurrently": "10.0.5",
 		"cspell": "9.1.5",
-		"fast-glob": "3.3.3",
-		"husky": "9.1.7",
-		"markdownlint-cli": "0.45.0",
+		"markdownlint-cli2": "0.23.3",
 		"prettier": "3.6.2"
 	},
 	"keywords": [
@@ -36,10 +36,10 @@
 		"iota",
 		"framework",
 		"blockchain",
-		"schema"
+		"assets"
 	],
 	"bugs": {
-		"url": "git+https://github.com/iotaledger/twin-assets/issues"
+		"url": "git+https://github.com/3sixtyglobal/assets/issues"
 	},
-	"homepage": "https://twindev.org"
+	"homepage": "https://3sixty.global"
 }
