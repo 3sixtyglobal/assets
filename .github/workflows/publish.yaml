@@ -26,14 +26,14 @@ jobs:
 
       # Clone the repository to the runner
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           token: ${{ secrets.GITHUB_TOKEN }} # Using GITHUB_TOKEN makes actions run as github-actions bot
           ref: main
           fetch-depth: 0 # Needed for merge operations
 
       - name: Setup Node
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@v7
         with:
           node-version: 24
 
