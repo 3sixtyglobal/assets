@@ -1,0 +1,112 @@
+name: Merge next to main
+
+# ORG_GHA_RELEASE_TOKEN requires:
+#   contents:      write
+#   pull-requests: write
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: ${{ github.workflow }}
+  cancel-in-progress: false
+
+env:
+  ORG_GPG_EMAIL: ${{ secrets.ORG_GPG_EMAIL }}
+  ORG_GPG_NAME: ${{ secrets.ORG_GPG_NAME }}
+
+jobs:
+  # Creates a branch from main and applies the exact diff of main → next as a
+  # single signed commit. Using diff|apply rather than a merge algorithm
+  # guarantees next's full content is present and avoids pushing unsigned
+  # developer commits from next, which would fail the "Require signed commits"
+  # ruleset. A human merges the PR; GitHub creates and signs the merge commit
+  # on main. Skipped when the branches are already in sync.
+  merge-next-to-main:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Get the code with full history so main and next can be compared
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.ORG_GHA_RELEASE_TOKEN }}
+
+      - name: Check if next is ahead of main
+        id: check-diff
+        run: |
+          git fetch --no-tags origin main next
+          AHEAD=$(git log origin/main..origin/next --oneline | wc -l)
+          if [ "$AHEAD" -gt 0 ]; then
+            echo "has_changes=true" >> "$GITHUB_OUTPUT"
+            echo "next is $AHEAD commit(s) ahead of main, merge branch required."
+          else
+            echo "has_changes=false" >> "$GITHUB_OUTPUT"
+            echo "next and main are already in sync, skipping."
+          fi
+
+      - name: Import GPG key
+        if: ${{ steps.check-diff.outputs.has_changes == 'true' }}
+        run: |
+          echo "${{ secrets.ORG_GPG_PRIVATE_KEY }}" | base64 --decode | gpg --import
+          echo "ORG_GPG_KEY_ID=${{ secrets.ORG_GPG_KEY_ID }}" >> "$GITHUB_ENV"
+
+      - name: Configure Git
+        if: ${{ steps.check-diff.outputs.has_changes == 'true' }}
+        run: |
+          git config --global user.email "$ORG_GPG_EMAIL"
+          git config --global user.name "$ORG_GPG_NAME"
+          git config --global user.signingkey "$ORG_GPG_KEY_ID"
+          git config --global commit.gpgsign true
+
+      - name: Create merge branch
+        id: create-branch
+        if: ${{ steps.check-diff.outputs.has_changes == 'true' }}
+        run: |
+          BRANCH_NAME="release/merge-next-to-main-$(date +%s)"
+          git checkout -b "$BRANCH_NAME" origin/main
+
+          # Apply the exact diff from main → next as a single signed commit
+          git diff --binary origin/main origin/next | git apply --index
+
+          # [skip ci] stops GitHub creating the pull_request runs for this branch.
+          # They are opened by GITHUB_TOKEN, so GitHub parks them as
+          # action_required with no jobs. Build runs on main once merged.
+          git commit -S -m "chore: merge next into main [skip ci]"
+          git push origin "$BRANCH_NAME"
+          echo "branch_name=$BRANCH_NAME" >> "$GITHUB_OUTPUT"
+
+      - name: Create PR merge branch → main
+        id: create-pr
+        if: ${{ steps.create-branch.outputs.branch_name != '' }}
+        run: |
+          PR_URL=$(gh pr create \
+            --title "chore: merge next into main" \
+            --body "Automated merge of \`next\` into \`main\`." \
+            --base main \
+            --head ${{ steps.create-branch.outputs.branch_name }})
+          PR_NUMBER=$(echo "$PR_URL" | grep -o '[0-9]\+$')
+          echo "pr_number=$PR_NUMBER" >> "$GITHUB_OUTPUT"
+          echo "::notice title=Next to Main PR::Approve and merge: $PR_URL"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Approve PR
+        if: ${{ steps.create-pr.outputs.pr_number != '' }}
+        run: gh pr review ${{ steps.create-pr.outputs.pr_number }} --approve
+        env:
+          GH_TOKEN: ${{ secrets.ORG_GHA_RELEASE_TOKEN }}
+
+      - name: Cleanup GPG key
+        if: always()
+        run: |
+          FINGERPRINT=$(gpg --list-secret-keys --with-colons "$ORG_GPG_KEY_ID" 2>/dev/null | awk -F: '/fpr:/ {print $10}' | head -1)
+          if [ -n "$FINGERPRINT" ]; then
+            gpg --batch --yes --delete-secret-keys "$FINGERPRINT" || true
+            gpg --batch --yes --delete-keys "$FINGERPRINT" || true
+          fi
