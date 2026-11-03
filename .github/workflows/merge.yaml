@@ -24,7 +24,7 @@ jobs:
   # single signed commit. Using diff|apply rather than a merge algorithm
   # guarantees next's full content is present and avoids pushing unsigned
   # developer commits from next, which would fail the "Require signed commits"
-  # ruleset. A human merges the PR; GitHub creates and signs the merge commit
+  # ruleset. The PR is approved and squash merged; GitHub signs the commit
   # on main. Skipped when the branches are already in sync.
   merge-next-to-main:
     runs-on: ubuntu-latest
@@ -92,13 +92,20 @@ jobs:
             --head ${{ steps.create-branch.outputs.branch_name }})
           PR_NUMBER=$(echo "$PR_URL" | grep -o '[0-9]\+$')
           echo "pr_number=$PR_NUMBER" >> "$GITHUB_OUTPUT"
-          echo "::notice title=Next to Main PR::Approve and merge: $PR_URL"
+          echo "::notice title=Next to Main PR::$PR_URL"
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Approve PR
         if: ${{ steps.create-pr.outputs.pr_number != '' }}
         run: gh pr review ${{ steps.create-pr.outputs.pr_number }} --approve
+        env:
+          GH_TOKEN: ${{ secrets.ORG_GHA_RELEASE_TOKEN }}
+
+      # Merge with ORG_GHA_RELEASE_TOKEN, a push to main made with GITHUB_TOKEN would not trigger Publish
+      - name: Merge PR
+        if: ${{ steps.create-pr.outputs.pr_number != '' }}
+        run: gh pr merge ${{ steps.create-pr.outputs.pr_number }} --squash --delete-branch
         env:
           GH_TOKEN: ${{ secrets.ORG_GHA_RELEASE_TOKEN }}
 
