@@ -102,10 +102,14 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.ORG_GHA_RELEASE_TOKEN }}
 
-      # Merge with ORG_GHA_RELEASE_TOKEN, a push to main made with GITHUB_TOKEN would not trigger Publish
+      # Merge with ORG_GHA_RELEASE_TOKEN, a push to main made with GITHUB_TOKEN would not trigger Publish.
+      # Set the commit message explicitly so [skip ci] from the branch commit does not reach main.
       - name: Merge PR
         if: ${{ steps.create-pr.outputs.pr_number != '' }}
-        run: gh pr merge ${{ steps.create-pr.outputs.pr_number }} --squash --delete-branch
+        run: |
+          gh pr merge ${{ steps.create-pr.outputs.pr_number }} --squash --delete-branch \
+            --subject "chore: merge next into main (#${{ steps.create-pr.outputs.pr_number }})" \
+            --body ""
         env:
           GH_TOKEN: ${{ secrets.ORG_GHA_RELEASE_TOKEN }}
 
