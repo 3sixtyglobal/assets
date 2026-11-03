@@ -48,11 +48,12 @@ jobs:
       - name: Install Vercel CLI
         run: npm install -g vercel
 
-      # Deploy the web folder to vercel and output the deployment URL as a GitHub output from the step
+      # Deploy to vercel and output the deployment URL as a GitHub output from the step.
+      # Deploy from the repo root, the project's Root Directory setting selects the web folder.
       - name: Deploy to Vercel
         id: deploy
         run: |
-          DEPLOYMENT_URL=$(vercel deploy web \
+          DEPLOYMENT_URL=$(vercel deploy \
           --token=${{ secrets.VERCEL_TOKEN }} \
           --scope=${{ secrets.VERCEL_SCOPE }} \
           --target=production \
