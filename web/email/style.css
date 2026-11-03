@@ -1,205 +1,68 @@
-html,
-body,
-div,
-span,
-applet,
-object,
-iframe,
-h1,
-h2,
-h3,
-h4,
-h5,
-h6,
-p,
-blockquote,
-pre,
-a,
-abbr,
-acronym,
-address,
-big,
-cite,
-code,
-del,
-dfn,
-em,
-img,
-ins,
-kbd,
-q,
-s,
-samp,
-small,
-strike,
-strong,
-sub,
-sup,
-tt,
-var,
-b,
-u,
-i,
-center,
-dl,
-dt,
-dd,
-ol,
-ul,
-li,
-fieldset,
-form,
-label,
-legend,
-table,
-caption,
-tbody,
-tfoot,
-thead,
-tr,
-th,
-td,
-article,
-aside,
-canvas,
-details,
-embed,
-figure,
-figcaption,
-footer,
-header,
-hgroup,
-menu,
-nav,
-output,
-ruby,
-section,
-summary,
-time,
-mark,
-audio,
-video {
+body {
 	margin: 0;
-	padding: 0;
-	border: 0;
-	font-size: 100%;
-	font: inherit;
-	vertical-align: baseline;
-}
-article,
-aside,
-details,
-figcaption,
-figure,
-footer,
-header,
-hgroup,
-menu,
-nav,
-section {
-	display: block;
-}
-body {
-	line-height: 1;
-}
-ol,
-ul {
-	list-style: none;
-}
-blockquote,
-q {
-	quotes: none;
-}
-blockquote:before,
-blockquote:after,
-q:before,
-q:after {
-	content: '';
-	content: none;
-}
-table {
-	border-collapse: collapse;
-	border-spacing: 0;
-}
-
-html {
+	padding: 24px 12px;
+	background-color: #f4f5f7;
+	color: #1f2937;
 	font-family:
-		ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol',
-		'Noto Color Emoji';
-	height: 100vh;
-	display: flex;
+		ui-sans-serif,
+		system-ui,
+		-apple-system,
+		'Segoe UI',
+		Roboto,
+		Helvetica,
+		Arial,
+		sans-serif;
+	font-size: 15px;
+	line-height: 1.6;
 }
 
-body {
-	display: flex;
-	margin: 10px;
-	flex-direction: column;
-	flex: 1;
+.container {
+	max-width: 560px;
+	margin: 0 auto;
+	padding: 32px;
+	border-radius: 8px;
+	background-color: #ffffff;
 }
 
-header {
-	display: flex;
-	align-items: center;
-	gap: 10px;
-	padding-bottom: 10px;
-	border-bottom: 1px solid #eeeeee;
-}
-
-main {
-	flex: 1;
-	padding: 20px;
-}
-
-footer {
-	display: flex;
-	align-items: center;
-	justify-content: space-between;
-	gap: 10px;
-	padding-top: 10px;
-	border-top: 1px solid #eeeeee;
+.logo {
+	display: block;
+	width: 48px;
+	height: 48px;
+	margin: 0 0 24px;
+	border: 0;
 }
 
 h1 {
-	font-size: 1.5rem;
-	font-weight: bold;
+	margin: 0 0 16px;
+	color: #111827;
+	font-size: 20px;
+	font-weight: 600;
+	line-height: 1.3;
 }
 
-h2 {
-	font-size: 1.1rem;
-	font-weight: bold;
-}
-
-b {
-	font-weight: bold;
-}
-
-header > a {
-	color: inherit;
+p {
+	margin: 0 0 16px;
 }
 
 a {
 	color: #0158fc;
+}
+
+.button {
+	display: inline-block;
+	padding: 12px 24px;
+	border-radius: 6px;
+	background-color: #0158fc;
+	color: #ffffff;
+	font-weight: 600;
 	text-decoration: none;
 }
 
-a:hover {
-	text-decoration: underline;
+.note {
+	color: #6b7280;
+	font-size: 13px;
 }
 
-ul {
-	line-height: 1.5rem;
-}
-
-p {
-	margin-bottom: 1rem;
-	line-height: 1.5rem;
-}
-
-.logo {
-	width: 48px;
-	height: 48px;
-	margin-bottom: 1rem;
-	background-image: url('https://assets.3sixty.global/images/favicon.png');
-	background-size: contain;
-	background-repeat: no-repeat;
+.signature {
+	margin: 24px 0 0;
 }
