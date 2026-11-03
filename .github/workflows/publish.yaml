@@ -2,6 +2,14 @@ name: Publish to Vercel
 
 on:
   workflow_dispatch:
+  # main only changes through merged PRs (protect-main-next ruleset), so this runs on every merge from next
+  push:
+    branches:
+      - main
+
+concurrency:
+  group: ${{ github.workflow }}
+  cancel-in-progress: false
 
 permissions:
   contents: read
