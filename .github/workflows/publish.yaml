@@ -2,13 +2,22 @@ name: Publish to Vercel
 
 on:
   workflow_dispatch:
+    inputs:
+      environment:
+        description: Where to publish, and the branch to publish from
+        required: true
+        type: choice
+        options:
+          - 🌱 prerelease (next branch)
+          - 🌳 production (main branch)
+        default: 🌳 production (main branch)
   # main only changes through merged PRs (protect-main-next ruleset), so this runs on every merge from next
   push:
     branches:
       - main
 
 concurrency:
-  group: ${{ github.workflow }}
+  group: ${{ github.workflow }}-${{ github.event_name == 'workflow_dispatch' && contains(inputs.environment, 'prerelease') && 'prerelease' || 'production' }}
   cancel-in-progress: false
 
 permissions:
@@ -25,19 +34,27 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # Only allow publishing when the workflow is run from the main branch
-      - name: Check branch
-        if: github.ref != 'refs/heads/main'
+      # A push to main is always production, a manual run publishes the branch its environment names
+      - name: Target
+        id: target
         run: |
-          echo "Error: Publishing is only allowed from the main branch, not ${{ github.ref_name }}"
-          exit 1
+          if [ "$EVENT" = "workflow_dispatch" ] && [[ "$ENVIRONMENT" == *prerelease* ]]; then
+            echo "ref=next" >> "$GITHUB_OUTPUT"
+            echo "production=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "ref=main" >> "$GITHUB_OUTPUT"
+            echo "production=true" >> "$GITHUB_OUTPUT"
+          fi
+        env:
+          EVENT: ${{ github.event_name }}
+          ENVIRONMENT: ${{ inputs.environment }}
 
-      # Clone the repository to the runner
+      # Clone the branch to publish to the runner
       - name: Checkout
         uses: actions/checkout@v7
         with:
           token: ${{ secrets.GITHUB_TOKEN }} # Using GITHUB_TOKEN makes actions run as github-actions bot
-          ref: main
+          ref: ${{ steps.target.outputs.ref }}
           fetch-depth: 0 # Needed for merge operations
 
       - name: Setup Node
@@ -48,7 +65,8 @@ jobs:
       - name: Install Vercel CLI
         run: npm install -g vercel
 
-      # Deploy to vercel and output the deployment URL as a GitHub output from the step.
+      # Deploy to vercel and output the deployment URL as a GitHub output from the step, as a
+      # preview deployment for a prerelease or the production deployment.
       # Deploy from the repo root, the project's Root Directory setting selects the web folder.
       - name: Deploy to Vercel
         id: deploy
@@ -56,12 +74,14 @@ jobs:
           DEPLOYMENT_URL=$(vercel deploy \
           --token=${{ secrets.VERCEL_TOKEN }} \
           --scope=${{ secrets.VERCEL_SCOPE }} \
-          --target=production \
+          ${{ steps.target.outputs.production == 'true' && '--target=production' || '' }} \
           --force)
           echo "deployment-url=$DEPLOYMENT_URL" >> $GITHUB_OUTPUT
+          echo "Published ${{ steps.target.outputs.ref }}: $DEPLOYMENT_URL" >> $GITHUB_STEP_SUMMARY
 
-      # Use the deployment URL to set an alias for the deployment
+      # Use the deployment URL to set the production alias, a prerelease keeps its preview URL
       - name: Set Alias
+        if: ${{ steps.target.outputs.production == 'true' }}
         run: |
           vercel alias set \
           ${{ steps.deploy.outputs.deployment-url }} \
